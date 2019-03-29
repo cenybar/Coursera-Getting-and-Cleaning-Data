@@ -99,4 +99,63 @@ htmlCode = readLines(con)
 close(con)
 htmlCode
 
-# Los comandos arriba se cuelgan, creo que debe ser porque es una https y eso da problemas
+# The previous code doesn't work, seems to be an error while reading the url. TBA.
+
+# Parsing with XML
+
+library(XML)
+url <- "http://scholar.google.com/citations?user=HI-I6C0AAAAJ&hl=en"
+html <- htmlTreeParse(url, useInternalNodes = T)
+
+# Lo de arriba se colgaba (de nuevo por el https), abajo lo modifiqué y funciona:
+library(RCurl)
+temp <- getURL("https://scholar.google.com/citations?user=HI-I6C0AAAAJ&hl=en", ssl.verifyPeer = FALSE )
+html <- htmlTreeParse(temp, useInternalNodes = TRUE)
+
+xpathApply(html, "//title", xmlValue)
+xpathSApply(html, "//td[@id='col-citedby']", xmlValue) #Este no funciona, a investigar
+
+# GET from the httr package
+
+library(httr); html2 = GET(url)
+content2 = content(html2, as="text")
+parsedHtml = htmlParse(content2,asText = TRUE)
+xpathApply(parsedHtml, "//title", xmlValue)
+
+# Accessing websites with passwords
+
+pg1 = GET("http://httpbin.org/basic-auth/user/passwd")
+pg1
+# If we run the previous code, we get a 401 error because we need to authenticate ourselves
+# A way to solve this:
+pg2 = GET("http://httpbin.org/basic-auth/user/passwd",
+          authenticate("user","passwd"))
+pg2
+
+names(pg2)
+
+# Using handles (to avoid having to authenticate every time you access a website)
+
+google= handle("http://google.com")
+pg1 = GET(handle = google, path="/")
+pg2 = GET(handle = google, path="search")
+
+# Notes and further resources
+# R bloggers has a number of examples on web scarping, search there web+scraping
+
+### READING DATA FROM APIs
+
+# Accessing Twitter from R
+
+myapp = oauth_app("twitter", key = "1eP2X0SyE9QF3Xby0CzaPKU5L", secret = "4JTRzgs8iJ8ApA96RrxkGnrJNbl97WPYT1dQy23byHd9SwhzmI")
+sig = sign_oauth1.0(myapp, token = "900611552-2V7j0cKZDdjoOyQAqvYvA2L2fXl5OoJsGveCoOkh", token_secret = "u99Opbmx1JMcT37kjr5gWgKJc8uOm7I4cslwwmHEq6ncK")
+homeTL = GET("https://api.twitter.com/1.1/statuses/home_timeline.json", sig)
+json1 = content(homeTL)
+json2 = jsonlite::fromJSON(jsonlite::toJSON(json1))
+json2[1,1:4]
+
+
+### READING FROM OTHER SOURCES
+
+# Refer to the pdf downloaded and always remember google is your
+# best friend (e.g. search= "what_you_need R package" "MySQL R package")
