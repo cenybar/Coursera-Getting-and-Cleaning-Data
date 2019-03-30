@@ -151,3 +151,71 @@ sqrt
 ceiling
 floor
 round(x, digits=n)
+
+## RESHAPING DATA
+
+library(reshape2)
+head(mtcars)
+
+# Melting data frames
+
+mtcars$carname <- rownames(mtcars)
+carMelt <- melt(mtcars, id=c("carname", "gear", "cyl"), measure.vars = c("mpg","hp"))
+head(carMelt,n=3)
+tail(carMelt,n=3)                
+
+# Casting data frames
+
+cylData <- dcast(carMelt, cyl ~ variable)
+cylData
+
+cylData <- dcast(carMelt, cyl ~ variable, mean)
+cylData
+
+# Averaging values
+
+head(InsectSprays)
+
+tapply(InsectSprays$count, InsectSprays$spray, sum)
+
+# Another way-split
+
+spIns = split(InsectSprays$count, InsectSprays$spray)
+spIns
+
+sprCount = lapply(spIns,sum)
+sprCount
+unlist(sprCount)
+
+sapply(spIns,sum) # This does the same of above in only one step (the list and unlist)
+
+# Another way - plyr package
+
+library(plyr)
+ddply(InsectSprays,.(spray), summarize, sum=sum(count))
+
+# Creating a new variable
+
+spraySums <- ddply(InsectSprays,.(spray), summarize, sum=ave(count, FUN = sum))
+dim(spraySums)
+head(spraySums)
+
+# other useful functions
+acast # for casting as multi-dimensional arrays
+arrange # for faster reordering without using order() commands
+mutate # adding new variables
+
+## MANAGING DATA FRAMES WITH DPLYR
+
+# dplyr Verbs
+
+select # return a subset of the columns of a df
+filter # extract a subset of rows from a df based on logical conditions
+arrange # reorder rows of a df
+rename # rename variables in a data frame
+mutate # add new variables/columns or transform existing vbles
+summarise / summarize # generate summary statistics of different variables in th df
+
+ # there is also a handy "print" method that prevents you from printing a lot of data to the console
+
+
