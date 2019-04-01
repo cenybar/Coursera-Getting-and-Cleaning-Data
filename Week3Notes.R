@@ -218,4 +218,81 @@ summarise / summarize # generate summary statistics of different variables in th
 
  # there is also a handy "print" method that prevents you from printing a lot of data to the console
 
-##
+# getting the data to work with 
+library(dplyr)
+url <- "https://github.com/DataScienceSpecialization/courses/blob/master/03_GettingData/dplyr/chicago.rds?raw=true"
+download.file(url, destfile = "./data/chicago.rds", mode = "wb")
+chicago <- readRDS("./data/chicago.rds")
+
+dim(chicago)
+str(chicago)
+names(chicago)
+head(select(chicago, city:dptp)) # A way to select columns (first 3) by their names
+head(select(chicago, -(city:dptp))) # similar a arriba pero seleccionando lo inverso
+# para ver todo lo que soluciona dplyr abajo se repite programando en R lo mismo:
+i <- match("city", names(chicago))
+j <- match("dptp", names(chicago))
+head(chicago[, -(i:j)]) # bastante más código para lo mismo
+
+# Se pueden hacer subsets de la data aplicando filtros a distintas columnas
+chic.f <- filter(chicago, pm25tmean2 > 30)
+head(chic.f, 10)
+chic.f <- filter(chicago, pm25tmean2 > 30 & tmpd > 80)
+head(chic.f)
+
+# ordenando el df según los valores de cierta columna
+
+chicago <- arrange(chicago, date)
+head(chicago)
+tail(chicago)
+
+chicago <- arrange(chicago, desc(date)) #ordeno en orden descendente
+head(chicago)
+
+# renombrando variables
+
+chicago <- rename(chicago, pm25 = pm25tmean2, dewpoint = dptp)
+head(chicago)
+
+# transformar o crear nuevas variables
+
+chicago <- mutate(chicago, pm25detrend = pm25 - mean(pm25, na.rm = TRUE))
+head(select(chicago, pm25, pm25detrend))
+
+chicago <- mutate(chicago, tempcat = factor(1*(tmpd > 80), labels = c("cold", "hot")))
+hotcold <- group_by(chicago, tempcat)
+hotcold
+summarise(hotcold, pm25 = mean(pm25), o3 = max(o3tmean2))
+summarise(hotcold, pm25 = mean(pm25, na.rm = TRUE), o3 = max(o3tmean2))
+
+# agrupación por años
+
+chicago <- mutate(chicago, year = as.POSIXlt(date)$year + 1900)
+years <- group_by(chicago, year)
+summarize(years, pm25=mean(pm25, na.rm = TRUE), o3 = max(o3tmean2), no2 = median(no2tmean2))
+
+# pipeline operator %>%
+
+chicago %>% mutate(month =as.POSIXlt(date)$mon + 1) %>% group_by(month) %>% summarise(pm25=mean(pm25, na.rm = TRUE), o3 = max(o3tmean2), no2 = median(no2tmean2))
+
+        # prevents to having to assing temporary variables, can do the same in one sequence
+
+## MERGING DATA
+
+# Can be done with the merge command
+
+# Also with the join feature on plyr
+library(plyr)
+df1 = data.frame(id=sample(1:10),x=rnorm(10))
+df2 = data.frame(id=sample(1:10),y=rnorm(10))
+arrange(join(df1,df2),id)
+
+# Very handy when joining several data sets
+df1 = data.frame(id=sample(1:10),x=rnorm(10))
+df2 = data.frame(id=sample(1:10),y=rnorm(10))
+df3 = data.frame(id=sample(1:10),z=rnorm(10))
+dfList = list(df1,df2,df3)
+join_all(dfList)
+
+
+
