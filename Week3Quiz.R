@@ -16,3 +16,5 @@ q1 <- read.csv("./data/q1.csv")
 agricultureLogical <- q1$ACR == 3 & q1$AGS == 6
 
 # answer 125, 238, 262
+
+2 ## 
